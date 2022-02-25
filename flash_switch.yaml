@@ -1,0 +1,71 @@
+blueprint:
+  name: Flashing Switches
+  description: >
+    Flashing switches via on off and delay and finally restore the previous switch states.
+  domain: automation
+  source_url: https://bundias.com/switch_flash.yaml
+  input:
+    activated:
+      name: Sensor
+      description: "Sensor to activate or deactivate flashing switches."
+      selector:
+        entity: {}
+    activated_states:
+      name: States to match with activated sensor (optional)
+      description: "A comma separated list of activated states."
+      default: "on"
+    switch_target:
+      name: Switch
+      description: "To using switches"
+      selector:
+        target:
+          entity:
+            domain: switch
+    delay:
+      name: (OPTIONAL) Delay
+      description: "Delay flashing switches"
+      default: 1000
+      selector:
+        number:
+          min: 0
+          max: 20000
+          unit_of_measurement: milliseconds
+
+mode: single
+max_exceeded: silent
+
+trigger:
+  - platform: state
+    entity_id: !input activated
+    to: "on"
+
+variables:
+  activated: !input activated
+  activated_states_str: !input activated_states
+  activated_states: "{{ activated_states_str.split(',') | map('trim') | list }}"
+  delay: !input delay
+
+condition: []
+
+action:
+  repeat:
+    while:
+      - condition: template
+        value_template: >
+          {% set activated_state = 'unknown' %}
+          {% if activated is defined %}
+          {% set activated_state = states(activated) %}
+          {% endif %}
+          {{ activated_state in activated_states }}
+    sequence:
+      - service: switch.toggle
+        target: !input 'switch_target'
+      - delay:
+          milliseconds: >
+            {{ delay }}
+      - service: switch.toggle
+        target: !input 'switch_target'
+      - delay:
+          milliseconds: >
+            {{ delay }}
+
