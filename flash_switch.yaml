@@ -3,7 +3,7 @@ blueprint:
   description: >
     Flashing switches via on off and delay and finally restore the previous switch states.
   domain: automation
-  source_url: https://bundias.com/switch_flash.yaml
+  source_url: https://github.com/marcopaganini/homeassistant-blueprints/blob/master/flash_switch.yaml
   input:
     activated:
       name: Sensor
