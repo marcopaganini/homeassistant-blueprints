@@ -1,49 +1,49 @@
 blueprint:
   name: Flashing Switches
-  description: >
-    Flashing switches via on off and delay and finally restore the previous switch states.
+  description: 'Flashing switches via on off sensor and restoring the original state.'
   domain: automation
   source_url: https://github.com/marcopaganini/homeassistant-blueprints/blob/master/flash_switch.yaml
   input:
     activated:
       name: Sensor
-      description: "Sensor to activate or deactivate flashing switches."
+      description: 'Sensor to activate or deactivate flashing switches.'
       selector:
         entity: {}
     activated_states:
       name: States to match with activated sensor (optional)
-      description: "A comma separated list of activated states."
-      default: "on"
+      description: 'A comma separated list of activated states.'
+      default: 'on'
     switch_target:
       name: Switch
-      description: "To using switches"
+      description: 'To using switches'
       selector:
         target:
           entity:
             domain: switch
     delay:
       name: (OPTIONAL) Delay
-      description: "Delay flashing switches"
+      description: 'Delay flashing switches'
       default: 1000
       selector:
         number:
-          min: 0
-          max: 20000
+          min: 0.0
+          max: 20000.0
           unit_of_measurement: milliseconds
-
+          step: 100.0
+          mode: slider
 mode: single
 max_exceeded: silent
 
 trigger:
   - platform: state
-    entity_id: !input activated
-    to: "on"
+    entity_id: !input 'activated'
+    to: 'on'
 
 variables:
-  activated: !input activated
-  activated_states_str: !input activated_states
+  activated: !input 'activated'
+  activated_states_str: !input 'activated_states'
   activated_states: "{{ activated_states_str.split(',') | map('trim') | list }}"
-  delay: !input delay
+  delay: !input 'delay'
 
 condition: []
 
@@ -61,11 +61,8 @@ action:
       - service: switch.toggle
         target: !input 'switch_target'
       - delay:
-          milliseconds: >
-            {{ delay }}
+          milliseconds: '{{ delay }}'
       - service: switch.toggle
         target: !input 'switch_target'
       - delay:
-          milliseconds: >
-            {{ delay }}
-
+          milliseconds: '{{ delay }}'
