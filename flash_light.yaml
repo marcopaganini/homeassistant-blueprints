@@ -1,0 +1,68 @@
+blueprint:
+  name: Flashing Lights
+  description: 'Flashing lights via on off sensor and restoring the original state.'
+  domain: automation
+  source_url: https://github.com/marcopaganini/homeassistant-blueprints/blob/master/flash_light.yaml
+  input:
+    activated:
+      name: Sensor
+      description: 'Sensor to activate or deactivate flashing lights.'
+      selector:
+        entity: {}
+    activated_states:
+      name: States to match with activated sensor (optional)
+      description: 'A comma separated list of activated states.'
+      default: 'on'
+    light_target:
+      name: Switch
+      description: 'To using lights'
+      selector:
+        target:
+          entity:
+            domain: light
+    delay:
+      name: (OPTIONAL) Delay
+      description: 'Delay flashing lights'
+      default: 1000
+      selector:
+        number:
+          min: 0.0
+          max: 20000.0
+          unit_of_measurement: milliseconds
+          step: 100.0
+          mode: slider
+mode: single
+max_exceeded: silent
+
+trigger:
+- platform: state
+  entity_id: !input 'activated'
+  to: 'on'
+
+variables:
+  activated: !input 'activated'
+  activated_states_str: !input 'activated_states'
+  activated_states: "{{ activated_states_str.split(',') | map('trim') | list }}"
+  delay: !input 'delay'
+
+condition: []
+
+action:
+  repeat:
+    while:
+    - condition: template
+        value_template: >
+          {% set activated_state = 'unknown' %}
+        {% if activated is defined %}
+          {% set activated_state = states(activated) %}
+        {% endif %}
+        {{ activated_state in activated_states }}
+    sequence:
+    - service: light.toggle
+      target: !input 'light_target'
+    - delay:
+        milliseconds: '{{ delay }}'
+    - service: light.toggle
+      target: !input 'light_target'
+    - delay:
+        milliseconds: '{{ delay }}'
